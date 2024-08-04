@@ -44,7 +44,7 @@ Now that we have all the data, we can use the script `execute_migration.py` to p
 All photos are downloaded from Gallery 1.x, and they need to be downloaded only once. The field `downloaded` is set to 1 when the download is complete. The same applies to Piwigo uploads. Once the photo is successfully uploaded, the field `uploaded` is set to 1. The `albums` table also has a column `migrated`, which is set to 1 once an album is migrated. This ensures that if your migration is aborted in the middle of migrating an album with its sub-albums and photos, you can safely continue from where you left off.
 
 ## Usage
-Both collecting metadata and migration are expected to be handle album by album. These approach has been tested only with albums on Gallery root and it handles tehir sub albums as well.
+Both collecting metadata and migration are expected to be handle album by album. This approach has been tested only with albums on Gallery root level - it handles their sub albums as well.
 
 Collect metadata: ```./collect_gallery_meta_data.py [album_name]```
 Execute migration: ```./execute_migration.py [album_name]```
