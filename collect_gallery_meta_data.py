@@ -10,19 +10,30 @@ import re
 import sys, os
 from datetime import datetime
 
-# Constants
-GALLERY_BASE_URL = os.getenv('GALLERY_BASE_URL', None)
-if GALLERY_BASE_URL is None:
-    raise ValueError("GALLERY_BASE_URL environment variable not set")
-
-Base = declarative_base()
-engine = create_engine(DATABASE_URL)
-Session = sessionmaker(bind=engine)
-session = Session()
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG)
+LOG_MSG_FORMAT = ('%(asctime)s,%(msecs)03d %(levelname)s [%(filename)s:%(lineno)d] - %(message)s')
+LOG_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
+logFormatter = logging.Formatter(LOG_MSG_FORMAT, LOG_DATE_FORMAT)
+logging.basicConfig(level=logging.DEBUG, format=LOG_MSG_FORMAT, datefmt=LOG_DATE_FORMAT)
 logger = logging.getLogger(__name__)
+
+# Constants
+GALLERY_BASE_URL = os.getenv('GALLERY_BASE_URL', None)
+DATABASE_URL = os.getenv('DATABASE_URL', None)
+if GALLERY_BASE_URL is None or DATABASE_URL is None:
+    logger.error("GALLERY_BASE_URL and DATABASE_URL environment variables need to be set.")
+    sys.exit(1)
+
+Base = declarative_base()
+try:
+    engine = create_engine(DATABASE_URL)
+except Exception as e:
+    logger.error(f"Error creating database engine: {e}")
+    sys.exit(1)
+
+Session = sessionmaker(bind=engine)
+session = Session()
 
 class Album(Base):
     __tablename__ = 'albums'
