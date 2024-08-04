@@ -259,6 +259,8 @@ def process_photos(album_id, album_name, piwigo_album_id):
                         photo['description'] = photo['caption'] + ' - ' + photo['description']
                     elif photo['caption']:
                         photo['description'] = photo['caption']
+                    if len(photo['caption']) > 255:
+                        photo['caption'] = photo['caption'][:255]
                     data = {
                         'method': 'pwg.images.addSimple',
                         'category': piwigo_album_id,
