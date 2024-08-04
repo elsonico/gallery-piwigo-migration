@@ -225,7 +225,7 @@ def main():
     create_tables()
 
     if len(sys.argv) < 2:
-        logger.error("Year not provided. Usage: ./get_album_data.py [YEAR]")
+        logger.error("Year not provided. Usage: ./get_album_data.py [root_album]")
         sys.exit(1)
 
     root_album = sys.argv[1]
