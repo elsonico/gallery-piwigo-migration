@@ -52,8 +52,11 @@ Execute migration: ```./execute_migration.py [album_name]```
 For more detailed instructions please check my [blog post](https://www.auroranrunner.com/2024/08/04/migrating-from-gallery-menalto-1-x-to-piwigo-an-open-source-solution/)
 .
 
+## Issues
+As of now the app is only able to handle Root level albums and 1st level subalbums, but anything deeper get not processed.
+
 ## Functionality
-This code has been tested by successfully migrating over 13,000 photos across 25 albums and sub-albums. It worked for me, but I take no responsibility if it does not work for you. I strongly suggest taking backups before starting anything.
+This code has been tested by successfully migrating over 17,000 photos across 20 albums and sub-albums. It worked for me, but I take no responsibility if it does not work for you. I strongly suggest taking backups before starting anything.
 
 The code is rather self-explanatory and can easily be modified for your own needs.
 
