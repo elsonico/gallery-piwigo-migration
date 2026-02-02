@@ -8,7 +8,7 @@ I have used this to migrate around 25 albums and 13,000 photos from Gallery 1.5 
 Anyone interested in collaboration is welcome.
 
 ## General
-There are two Python scripts:
+There are three Python scripts:
 
 ### Collect Gallery Metadata
 The `collect_gallery_meta_data.py` script takes any album located in the Gallery 1.x root as a command-line argument and then goes through all of its sub-albums and photos in each sub-album.
@@ -35,6 +35,11 @@ This information is stored in a MySQL (or any SQLAlchemy-supported) database tab
 
 This information is stored in a MySQL (or any SQLAlchemy-supported) database table `photos`.
 
+### Collect Gallery Metadata (File System)
+The `collect_gallery_meta_data_fs.py` script is an alternative to the HTTP version that reads directly from the local file system. Use this when you have direct access to the Gallery 1.x installation directory.
+
+Instead of `GALLERY_BASE_URL`, set `GALLERY_BASE_PATH` to point to the Gallery albums directory on your local file system.
+
 #### Collected Data and Use
 With the data collected, we now have a database containing metadata for all albums and photos that were stored in Gallery 1.x. We can use this data to store all the photos, captions, capture dates, and more in a database and essentially use this data to migrate to any photo gallery software or create our own photo gallery software.
 
@@ -46,8 +51,27 @@ All photos are downloaded from Gallery 1.x, and they need to be downloaded only 
 ## Usage
 Both collecting metadata and migration are expected to be handle album by album. This approach has been tested only with albums on Gallery root level - it handles their sub albums as well.
 
-Collect metadata: ```./collect_gallery_meta_data.py [album_name]```
+Collect metadata (via HTTP): ```./collect_gallery_meta_data.py [album_name]```
+Collect metadata (via file system): ```./collect_gallery_meta_data_fs.py [album_name]```
 Execute migration: ```./execute_migration.py [album_name]```
+
+### Environment Variables
+
+#### HTTP Version (collect_gallery_meta_data.py)
+- `GALLERY_BASE_URL`: URL to your Gallery 1.x installation
+- `DATABASE_URL`: SQLAlchemy database connection string
+
+#### File System Version (collect_gallery_meta_data_fs.py)
+- `GALLERY_BASE_PATH`: Local path to the Gallery 1.x albums directory
+- `DATABASE_URL`: SQLAlchemy database connection string
+
+#### Migration (execute_migration.py)
+- `GALLERY_BASE_URL`: URL to your Gallery 1.x installation
+- `PIWIGO_API_URL`: Piwigo API endpoint (e.g., http://[piwigo_host]/piwigo/ws.php)
+- `PIWIGO_USERNAME`: Piwigo admin username
+- `PIWIGO_PASSWORD`: Piwigo admin password
+- `MIG_DB_*`: Migration database connection settings
+- `PW_DB_*`: Piwigo database connection settings
 
 For more detailed instructions please check my [blog post](https://www.auroranrunner.com/2024/08/04/migrating-from-gallery-menalto-1-x-to-piwigo-an-open-source-solution/)
 .
