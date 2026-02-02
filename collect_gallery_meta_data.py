@@ -195,7 +195,15 @@ def process_subalbum(album_name, parent_id):
         photos_data = fetch_data(photos_url)
         photos = parse_photos_data(photos_data)
         for photo in photos:
-            if not photo['is_album']:
+            if photo['is_album']:
+                # Recursively process nested sub-albums
+                sub_album_name = photo['name']
+                title = photo['title']
+                caption = photo['caption']
+                description = photo['description']
+                sub_album_id = insert_album(sub_album_name, parent_id, sub_album_name, title, caption, description)
+                process_subalbum(sub_album_name, sub_album_id)
+            else:
                 insert_photo(parent_id, photo['name'], photo['caption'],
                              photo['description'], photo['url'],
                              str(photo), photo['capturedate'], photo['uploaddate'])

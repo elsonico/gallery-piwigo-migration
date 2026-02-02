@@ -121,6 +121,42 @@ def update_album_info(album_id, title, caption, description):
     if result.get('stat') != 'ok':
         raise Exception(f"Failed to update album info for album ID {album_id}")
 
+def process_subalbums_recursive(cursor, conn, pw_cursor, parent_album_id, piwigo_parent_id):
+    """Recursively process all sub-albums at any depth level."""
+    cursor.execute("SELECT * FROM albums WHERE parent_id=%s", (parent_album_id,))
+    subalbums = cursor.fetchall()
+    logger.debug(f"Subalbums fetched for parent {parent_album_id}: {subalbums}")
+    
+    for subalbum in subalbums:
+        subalbum_id = subalbum['id']
+        subalbum_name = subalbum['name']
+        subalbum_title = subalbum['title']
+        subalbum_caption = subalbum['caption']
+        subalbum_description = subalbum['description']
+
+        if subalbum['created']:
+            logger.info(f"Album {subalbum_name} already created, skipping album creation")
+            pw_cursor.execute("SELECT id FROM piwigo_categories WHERE name=%s", (subalbum_title,))
+            result = pw_cursor.fetchone()
+            if result:
+                logger.debug(f"Found album {subalbum_title} in Piwigo database with ID {result['id']}")
+                piwigo_subalbum_id = result['id']
+            else:
+                logger.error(f"Could not find sub album {subalbum_title} in Piwigo database")
+                continue
+        else:
+            piwigo_login()
+            piwigo_subalbum_id = piwigo_create_album(subalbum_name, piwigo_parent_id, subalbum_title, subalbum_description)
+            cursor.execute("UPDATE albums SET created=TRUE WHERE id=%s", (subalbum_id,))
+            conn.commit()
+        
+        # Process photos in this sub-album
+        process_photos(subalbum_id, subalbum_name, piwigo_subalbum_id)
+        
+        # Recursively process nested sub-albums
+        process_subalbums_recursive(cursor, conn, pw_cursor, subalbum_id, piwigo_subalbum_id)
+
+
 def process_album(album_name):
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
@@ -151,34 +187,6 @@ def process_album(album_name):
         else:
             logger.error(f"Could not find album {album_title} in Piwigo database")
             return
-        # Process sub-albums
-        cursor.execute("SELECT * FROM albums WHERE parent_id=%s", (album_id,))
-        subalbums = cursor.fetchall()
-        logger.debug(f"Subalbums fetched: {subalbums}")
-        for subalbum in subalbums:
-            subalbum_id = subalbum['id']
-            subalbum_name = subalbum['name']
-            subalbum_title = subalbum['title']
-            subalbum_caption = subalbum['caption']
-            subalbum_description = subalbum['description']
-
-            if subalbum['created']:
-                logger.info(f"Album {subalbum_name} already created, skipping album creation")
-                pw_cursor.execute("SELECT id FROM piwigo_categories WHERE name=%s", (subalbum_title,))
-                result = pw_cursor.fetchone()
-                if result:
-                    logger.debug(f"Found album {subalbum_title} in Piwigo database with ID {result['id']}")
-                    piwigo_subalbum_id = result['id']
-                else:
-                    logger.error(f"Could not find sub album {subalbum_title} in Piwigo database")
-                    return
-            else:
-                # Process sub-albums
-                piwigo_login()
-                piwigo_subalbum_id = piwigo_create_album(subalbum_name, piwigo_album_id, subalbum_title, subalbum_description)
-                cursor.execute("UPDATE albums SET created=TRUE WHERE id=%s", (subalbum_id,))
-                conn.commit()
-            process_photos(subalbum_id, subalbum_name, piwigo_subalbum_id)
     else:
         # Login to Piwigo
         piwigo_login()
@@ -191,26 +199,11 @@ def process_album(album_name):
         cursor.execute("UPDATE albums SET created=TRUE WHERE id=%s", (album_id,))
         conn.commit()
 
-        # Process sub-albums
-        cursor.execute("SELECT * FROM albums WHERE parent_id=%s", (album_id,))
-        subalbums = cursor.fetchall()
-        logger.debug(f"Subalbums fetched: {subalbums}")
-        for subalbum in subalbums:
-            subalbum_id = subalbum['id']
-            subalbum_name = subalbum['name']
-            subalbum_title = subalbum['title']
-            subalbum_caption = subalbum['caption']
-            subalbum_description = subalbum['description']
-
-            piwigo_subalbum_id = piwigo_create_album(subalbum_name, piwigo_album_id, subalbum_title, subalbum_description)
-
-            cursor.execute("UPDATE albums SET created=TRUE WHERE id=%s", (subalbum_id,))
-            conn.commit()
-
-            process_photos(subalbum_id, subalbum_name, piwigo_subalbum_id)
-
-        # Process photos in the main album
-        process_photos(album_id, album_name, piwigo_album_id)
+    # Process photos in the main album
+    process_photos(album_id, album_name, piwigo_album_id)
+    
+    # Recursively process all sub-albums at any depth
+    process_subalbums_recursive(cursor, conn, pw_cursor, album_id, piwigo_album_id)
 
     cursor.close()
     conn.close()

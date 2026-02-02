@@ -53,7 +53,7 @@ For more detailed instructions please check my [blog post](https://www.auroranru
 .
 
 ## Issues
-As of now the app is only able to handle Root level albums and 1st level subalbums, but anything deeper get not processed.
+No known issues. The app now supports nested sub-albums at any depth level.
 
 ## Functionality
 This code has been tested by successfully migrating over 17,000 photos across 20 albums and sub-albums. It worked for me, but I take no responsibility if it does not work for you. I strongly suggest taking backups before starting anything.
